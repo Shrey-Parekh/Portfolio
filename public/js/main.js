@@ -451,18 +451,6 @@ function initThreeJS() {
     const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
     scene.add(ambientLight);
 
-    // Add multiple colored point lights for dynamic lighting
-    const colors = [0x6C63FF, 0x00F5FF, 0xFF3366];
-    colors.forEach((color, index) => {
-        const light = new THREE.PointLight(color, 2, 120); // Increased intensity and range
-        light.position.set(
-            Math.cos(index * Math.PI * 2 / 3) * 25, // Increased distance
-            Math.sin(index * Math.PI * 2 / 3) * 25, // Increased distance
-            15 // Increased z position
-        );
-        scene.add(light);
-    });
-
     console.log('Lights added to scene');
 
     // Create space elements
@@ -554,16 +542,65 @@ function createGalaxies() {
 
 function createBlackHole() {
     // Create black hole sphere with event horizon
-    const geometry = new THREE.SphereGeometry(5, 256, 256); // Increased segments for higher quality
+    const geometry = new THREE.SphereGeometry(5, 256, 256);
     const material = new THREE.MeshPhysicalMaterial({
         color: 0x000000,
-        roughness: 0.3, // Reduced roughness for a smoother appearance
-        metalness: 1,
-        clearcoat: 1,
-        clearcoatRoughness: 0.1,
-        transmission: 0.7, // Keep transmission if supported
-        ior: 2.5, // Keep ior if supported
-        reflectivity: 1 // Keep reflectivity if supported
+        roughness: 0.02, // Even smoother surface
+        metalness: 0.95,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.02,
+        transmission: 0.05, // Reduced transparency
+        ior: 2.5, // Higher refraction
+        reflectivity: 1.0,
+        opacity: 0.99,
+        transparent: true,
+        envMapIntensity: 2.5,
+        emissive: 0x000000,
+        emissiveIntensity: 0.4,
+        // Add custom shader properties
+        onBeforeCompile: (shader) => {
+            shader.uniforms.time = { value: 0 };
+            shader.vertexShader = `
+                uniform float time;
+                varying vec3 vNormal;
+                varying vec3 vPosition;
+                varying vec3 vViewPosition;
+                void main() {
+                    vNormal = normal;
+                    vPosition = position;
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    vViewPosition = -mvPosition.xyz;
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `;
+            shader.fragmentShader = `
+                uniform float time;
+                varying vec3 vNormal;
+                varying vec3 vPosition;
+                varying vec3 vViewPosition;
+                void main() {
+                    // Create subtle surface distortion
+                    float distortion = sin(vPosition.x * 10.0 + time) * 0.02 +
+                                     sin(vPosition.y * 10.0 + time * 0.7) * 0.02 +
+                                     sin(vPosition.z * 10.0 + time * 0.5) * 0.02;
+                    
+                    // Enhanced normal-based lighting
+                    vec3 viewDir = normalize(vViewPosition);
+                    float fresnel = pow(1.0 - dot(normalize(vNormal), viewDir), 4.0);
+                    
+                    // Create subtle color variation
+                    vec3 baseColor = vec3(0.0); // Pure black
+                    vec3 highlightColor = vec3(0.05, 0.05, 0.08); // Darker blue
+                    vec3 rimColor = vec3(0.02, 0.02, 0.03); // Very subtle rim light
+                    
+                    // Mix colors based on fresnel and distortion
+                    vec3 finalColor = mix(baseColor, highlightColor, fresnel * (1.0 + distortion * 0.5));
+                    finalColor = mix(finalColor, rimColor, pow(fresnel, 2.0) * 0.5);
+                    
+                    gl_FragColor = vec4(finalColor, 0.99);
+                }
+            `;
+        }
     });
     blackHole = new THREE.Mesh(geometry, material);
     scene.add(blackHole);
@@ -571,26 +608,38 @@ function createBlackHole() {
     // Tilt the black hole by 45 degrees from the north pole
     blackHole.rotation.z = Math.PI / 4;
 
-    // Add a strong glow around the event horizon
-    const glowGeometry = new THREE.SphereGeometry(5.5, 256, 256); // Increased segments for higher quality
+    // Add a stronger glow around the event horizon
+    const glowGeometry = new THREE.SphereGeometry(5.5, 256, 256);
     const glowMaterial = new THREE.MeshBasicMaterial({
-        color: 0x6C63FF,
+        color: 0x4B0082, // Darker purple
         transparent: true,
-        opacity: 0.5, // Increased opacity for a more pronounced glow
+        opacity: 0.4,
         side: THREE.BackSide,
         blending: THREE.AdditiveBlending
     });
     const glow = new THREE.Mesh(glowGeometry, glowMaterial);
     blackHole.add(glow);
 
+    // Add a second, outer glow layer
+    const outerGlowGeometry = new THREE.SphereGeometry(6.0, 256, 256);
+    const outerGlowMaterial = new THREE.MeshBasicMaterial({
+        color: 0x9400D3, // Deep purple
+        transparent: true,
+        opacity: 0.2,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending
+    });
+    const outerGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+    blackHole.add(outerGlow);
+
     // Add accretion disk with color gradient
-    const diskGeometry = new THREE.RingGeometry(6, 13, 256); // Increased segments for higher quality
-    // Custom shader for disk gradient
+    const diskGeometry = new THREE.RingGeometry(6, 13, 256);
     const diskMaterial = new THREE.ShaderMaterial({
         uniforms: {
-            color1: { value: new THREE.Color(0xffe066) }, // yellow
-            color2: { value: new THREE.Color(0xff3366) }, // magenta
-            color3: { value: new THREE.Color(0x6C63FF) }, // blue
+            color1: { value: new THREE.Color(0x8A2BE2) }, // Purple
+            color2: { value: new THREE.Color(0x00ffff) }, // Cyan
+            color3: { value: new THREE.Color(0x4B0082) }, // Indigo
+            color4: { value: new THREE.Color(0x9400D3) }, // Deep Purple
             time: { value: 0.0 }
         },
         vertexShader: `
@@ -604,58 +653,113 @@ function createBlackHole() {
             uniform vec3 color1;
             uniform vec3 color2;
             uniform vec3 color3;
+            uniform vec3 color4;
             uniform float time;
             varying vec2 vUv;
 
+            // Improved noise function
+            float random(vec2 st) {
+                return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+            }
+
+            // Value noise
+            float noise(vec2 st) {
+                vec2 i = floor(st);
+                vec2 f = fract(st);
+                
+                float a = random(i);
+                float b = random(i + vec2(1.0, 0.0));
+                float c = random(i + vec2(0.0, 1.0));
+                float d = random(i + vec2(1.0, 1.0));
+
+                vec2 u = f * f * (3.0 - 2.0 * f);
+                return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+            }
+
             void main() {
-                // Radial gradient based on distance from center (vUv.x)
-                float distance = length(vUv - 0.5);
-                // Define gradient zones based on distance
-                float innerEdge = 0.1; // Closer to center
-                float midZone = 0.4;
-                float outerEdge = 0.5; // Furthest from center
-
-                vec3 color;
-                if (distance < midZone) {
-                    // Inner part: Transition from color1 (yellow/white) to color2 (magenta)
-                    float innerGradient = smoothstep(innerEdge, midZone, distance);
-                    color = mix(color1, color2, innerGradient);
-                } else {
-                    // Outer part: Transition from color2 (magenta) to color3 (blue)
-                    float outerGradient = smoothstep(midZone, outerEdge, distance);
-                    color = mix(color2, color3, outerGradient);
-                }
-
-                // Enhance the spiral pattern effect
+                // Calculate angle and distance from center
+                vec2 center = vec2(0.5, 0.5);
+                float distance = length(vUv - center);
                 float angle = atan(vUv.y - 0.5, vUv.x - 0.5);
-                float spiralFactor = 8.0; // Further increased spiral factor
-                float spiralSpeed = 0.1; // Faster spiral rotation
-                float spiral = mod(angle / (2.0 * PI) + time * spiralSpeed + distance * spiralFactor, 1.0);
-
-                // Blend spiral pattern into the color
-                // Create a pulsing effect on the spiral based on time
-                float pulse = sin(time * 5.0 + distance * 20.0) * 0.1 + 0.9; // Faster pulse closer in
-                vec3 spiralColor = mix(color1, color3, spiral) * pulse; // Color mix for spiral, add pulse
-                color = mix(color, spiralColor, smoothstep(0.2, 0.8, spiral)); // Blend spiral more strongly
-
-                // Add more detailed noise for turbulence
-                float noise = fract(sin(dot(vUv.xy * 20.0 + time*5.0, vec2(12.9898,78.233))) * 43758.5453);
-                noise = noise * 2.0 - 1.0; // Map noise to -1 to 1
-
-                // Refine opacity based on distance and noise
-                // Strong falloff near the inner edge, fade towards the outer edge
-                float opacity = 0.8 * smoothstep(innerEdge + 0.05, midZone - 0.05, distance) * smoothstep(outerEdge, midZone + 0.05, distance);
-                opacity += noise * 0.1 * opacity; // Add noise influence to opacity
-
-                // Ensure opacity is not too low and has a base level
-                opacity = max(0.2, opacity); // Minimum opacity level
-
+                
+                // Normalize angle to 0-1 range
+                float normalizedAngle = (angle + 3.14159265359) / (2.0 * 3.14159265359);
+                
+                // Create circular gradient based on angle with multiple layers
+                float circularGradient = mod(normalizedAngle + time * 0.2, 1.0);
+                float secondaryGradient = mod(normalizedAngle * 2.0 + time * 0.15, 1.0);
+                float tertiaryGradient = mod(normalizedAngle * 3.0 - time * 0.1, 1.0);
+                
+                // Mix colors based on circular gradient with enhanced color mixing
+                vec3 color = mix(color1, color2, circularGradient);
+                
+                // Add secondary color variation
+                float secondaryMix = sin(secondaryGradient * 6.28318530718) * 0.5 + 0.5;
+                color = mix(color, color * 1.2, secondaryMix);
+                
+                // Add tertiary color variation for smoother transitions
+                float tertiaryMix = cos(tertiaryGradient * 6.28318530718) * 0.3 + 0.3;
+                color = mix(color, color3, tertiaryMix);
+                
+                // Add quaternary color variation
+                float quaternaryMix = sin(tertiaryGradient * 4.0 + time * 0.2) * 0.5 + 0.5;
+                color = mix(color, color4, quaternaryMix * 0.3);
+                
+                // Add detailed texture using multiple layers of noise
+                float noiseScale = 20.0;
+                float noise1 = noise(vUv * noiseScale + time * 0.5);
+                float noise2 = noise(vUv * noiseScale * 2.0 - time * 0.3);
+                float noise3 = noise(vUv * noiseScale * 4.0 + time * 0.2);
+                
+                float combinedNoise = (noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2);
+                
+                // Add spiral effect with multiple layers
+                float spiral1 = sin(angle * 8.0 + time * 2.0 + distance * 10.0) * 0.5 + 0.5;
+                float spiral2 = sin(angle * 16.0 - time * 1.5 + distance * 15.0) * 0.5 + 0.5;
+                float spiral = mix(spiral1, spiral2, 0.5);
+                
+                // Add turbulence effect
+                float turbulence = sin(distance * 30.0 + time * 3.0) * 0.5 + 0.5;
+                
+                // Combine all effects with improved blending
+                float distanceFactor = smoothstep(0.0, 0.5, distance);
+                color = mix(color, color * 1.5, distanceFactor * 0.8);
+                
+                // Spiral effect with improved blending
+                float spiralFactor = smoothstep(0.3, 0.7, spiral);
+                color = mix(color, color * 1.2, spiralFactor);
+                
+                // Turbulence with smoother transition
+                float turbulenceFactor = smoothstep(0.4, 0.6, turbulence);
+                color = mix(color, color * 1.1, turbulenceFactor);
+                
+                // Noise texture with improved blending
+                float noiseFactor = smoothstep(0.2, 0.8, combinedNoise);
+                color = mix(color, color * 1.3, noiseFactor);
+                
+                // Add subtle color variation based on noise
+                color += vec3(combinedNoise * 0.1);
+                
+                // Calculate opacity with enhanced edge effects
+                float baseOpacity = smoothstep(0.5, 0.0, distance);
+                float noiseOpacity = smoothstep(0.3, 0.7, combinedNoise) * 0.2;
+                float spiralOpacity = smoothstep(0.4, 0.6, spiral) * 0.15;
+                
+                float opacity = baseOpacity + noiseOpacity + spiralOpacity;
+                opacity = max(0.7, opacity); // Minimum opacity
+                
+                // Add subtle glow effect
+                float glow = smoothstep(0.4, 0.0, distance) * 0.4;
+                vec3 glowColor = mix(vec3(0.5, 0.8, 1.0), vec3(0.8, 0.9, 1.0), distance);
+                color += glow * glowColor;
+                
                 gl_FragColor = vec4(color, opacity);
             }
         `,
         transparent: true,
         side: THREE.DoubleSide,
-        blending: THREE.AdditiveBlending
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
     });
     const accretionDisk = new THREE.Mesh(diskGeometry, diskMaterial);
     accretionDisk.rotation.x = Math.PI / 2;
@@ -688,39 +792,139 @@ function createBlackHole() {
 
     // Add a small layer of orbiting particles
     const orbitingParticleGeometry = new THREE.BufferGeometry();
-    const orbitingParticleMaterial = new THREE.PointsMaterial({
-        color: 0xFFFFFF, // White or a subtle color
-        size: 0.1,
+    const orbitingParticleMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            time: { value: 0 },
+            color1: { value: new THREE.Color(0x8A2BE2) }, // Purple
+            color2: { value: new THREE.Color(0x00ffff) }, // Cyan
+            color3: { value: new THREE.Color(0x4B0082) }, // Indigo
+            color4: { value: new THREE.Color(0x9400D3) }, // Deep Purple
+            color5: { value: new THREE.Color(0x00BFFF) }  // Deep Sky Blue
+        },
+        vertexShader: `
+            uniform float time;
+            varying vec3 vColor;
+            varying float vAlpha;
+            varying float vDistance;
+            
+            attribute float size;
+            attribute vec3 customColor;
+            attribute float speed;
+            
+            void main() {
+                vColor = customColor;
+                
+                // Calculate particle position
+                float angle = position.x + time * speed; // Variable rotation speed
+                float radius = length(position.xy);
+                
+                // Add slight vertical oscillation
+                float verticalOffset = sin(angle * 2.0 + time) * 0.15;
+                verticalOffset += cos(angle * 3.0 + time * 0.5) * 0.1; // Additional wave
+                
+                // Calculate new position
+                vec3 newPosition = vec3(
+                    radius * cos(angle),
+                    radius * sin(angle),
+                    position.z + verticalOffset
+                );
+                
+                // Calculate distance from center for effects
+                vDistance = length(newPosition.xy) / 20.0;
+                
+                // Calculate alpha based on position and time
+                vAlpha = 0.8 + 0.2 * sin(angle * 3.0 + time * 2.0);
+                vAlpha *= smoothstep(0.0, 0.5, 1.0 - abs(position.z)); // Fade at edges
+                
+                vec4 mvPosition = modelViewMatrix * vec4(newPosition, 1.0);
+                gl_PointSize = size * (400.0 / -mvPosition.z); // Slightly larger particles
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `,
+        fragmentShader: `
+            uniform vec3 color1;
+            uniform vec3 color2;
+            uniform vec3 color3;
+            uniform vec3 color4;
+            uniform vec3 color5;
+            uniform float time;
+            
+            varying vec3 vColor;
+            varying float vAlpha;
+            varying float vDistance;
+            
+            void main() {
+                // Create circular gradient
+                vec2 center = gl_PointCoord - vec2(0.5);
+                float dist = length(center);
+                
+                // Create soft circular particle
+                float alpha = smoothstep(0.5, 0.1, dist) * vAlpha; // Sharper edges
+                
+                // Mix colors based on position and time
+                vec3 color = mix(color1, color2, sin(time + vColor.x) * 0.5 + 0.5);
+                color = mix(color, color3, cos(time * 0.5 + vColor.y) * 0.5 + 0.5);
+                color = mix(color, color4, sin(time * 0.3 + vDistance) * 0.5 + 0.5);
+                color = mix(color, color5, cos(time * 0.7 + vColor.z) * 0.5 + 0.5);
+                
+                // Add subtle glow
+                float glow = smoothstep(0.5, 0.0, dist) * 0.7; // Stronger glow
+                color += glow * vec3(0.6, 0.9, 1.0); // Brighter glow color
+                
+                // Add sparkle effect
+                float sparkle = pow(smoothstep(0.5, 0.0, dist), 2.0) * 
+                               sin(time * 5.0 + vColor.x * 10.0) * 0.5 + 0.5;
+                color += sparkle * vec3(1.0, 1.0, 1.0) * 0.3;
+                
+                gl_FragColor = vec4(color, alpha);
+            }
+        `,
         transparent: true,
-        opacity: 0.7,
-        blending: THREE.AdditiveBlending
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
     });
-    const orbitingParticleVertices = [];
 
-    const numOrbitingParticles = 500; // Reduced number for a 'small' layer
-    const orbitingRadius = 15; // Orbiting distance
+    const orbitingParticleVertices = [];
+    const particleColors = [];
+    const particleSizes = [];
+    const particleSpeeds = [];
+
+    const numOrbitingParticles = 2000; // Increased particle count
+    const orbitingRadius = 15;
 
     for (let i = 0; i < numOrbitingParticles; i++) {
-        // Distribute particles in a flat ring shape
         const angle = Math.random() * Math.PI * 2;
-        const r = orbitingRadius + (Math.random() - 0.5) * 2; // Slight variation in radius
+        const r = orbitingRadius + (Math.random() - 0.5) * 3; // Slightly wider distribution
 
         const x = r * Math.cos(angle);
         const y = r * Math.sin(angle);
-        const z = (Math.random() - 0.5) * 0.5; // Small vertical spread
+        const z = (Math.random() - 0.5) * 0.8; // Slightly thicker disk
 
         orbitingParticleVertices.push(x, y, z);
+        
+        // Add color variation
+        const color = new THREE.Color();
+        color.setHSL(Math.random() * 0.15 + 0.6, 0.9, 0.9); // More vibrant colors
+        particleColors.push(color.r, color.g, color.b);
+        
+        // Add size variation
+        particleSizes.push(Math.random() * 0.15 + 0.05); // Slightly larger particles
+        
+        // Add speed variation
+        particleSpeeds.push(Math.random() * 0.3 + 0.4); // Variable speeds
     }
 
     orbitingParticleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitingParticleVertices, 3));
+    orbitingParticleGeometry.setAttribute('customColor', new THREE.Float32BufferAttribute(particleColors, 3));
+    orbitingParticleGeometry.setAttribute('size', new THREE.Float32BufferAttribute(particleSizes, 1));
+    orbitingParticleGeometry.setAttribute('speed', new THREE.Float32BufferAttribute(particleSpeeds, 1));
+
     const orbitingParticles = new THREE.Points(orbitingParticleGeometry, orbitingParticleMaterial);
     blackHole.add(orbitingParticles);
-    // Store for animation
-    blackHoleOrbitingParticles = orbitingParticles; // Make sure this variable is declared globally or in a scope accessible by animate()
+    blackHoleOrbitingParticles = orbitingParticles;
 
     // Note: Particle movement logic will need to be added in the animate() function.
     // We need to update the position attribute of the particle geometries in the animation loop.
-
 }
 
 function setupEventListeners() {
@@ -833,7 +1037,7 @@ function setupEventListeners() {
                     });
 
                     // Find the glow mesh (assuming it's a child of blackHole)
-                    const glowMesh = blackHole.children.find(child => child.material && child.material.color.getHex() === 0x6C63FF && child.geometry.type === 'SphereGeometry');
+                    const glowMesh = blackHole.children.find(child => child.material && child.material.color.getHex() === 0x4B0082 && child.geometry.type === 'SphereGeometry');
                     
                     if(glowMesh && glowMesh.material && glowMesh.material.hasOwnProperty('opacity')) {
                         // "Illuminate" effect (glow opacity animation)
@@ -885,7 +1089,7 @@ function setupEventListeners() {
 
         // Find the glow mesh within the black hole children
         const glowMesh = blackHole ? blackHole.children.find(child => 
-            child.material && child.material.color && child.material.color.getHex() === 0x6C63FF && child.geometry.type === 'SphereGeometry'
+            child.material && child.material.color && child.material.color.getHex() === 0x4B0082 && child.geometry.type === 'SphereGeometry'
         ) : null;
 
         if (intersects.length > 0) {
@@ -981,31 +1185,8 @@ function animate() {
 
     // Animate the small layer of orbiting particles
     if (blackHoleOrbitingParticles) {
-        const positions = blackHoleOrbitingParticles.geometry.attributes.position.array;
-        const time = performance.now() * 0.0003; // Slower orbiting speed
-
-        for (let i = 0; i < positions.length; i += 3) {
-            const ix = i;
-            const iy = i + 1;
-            const iz = i + 2;
-
-            // Get the original position of the particle
-            const originalX = positions[ix]; // Need to store original positions if not already
-            const originalY = positions[iy];
-            const originalZ = positions[iz];
-
-            // Calculate the current angle based on the original position and time
-            const initialAngle = Math.atan2(originalY, originalX);
-            const distance = Math.sqrt(originalX * originalX + originalY * originalY);
-            const orbitSpeed = 0.5; // Base speed of orbit
-            const newAngle = initialAngle + time * orbitSpeed; // Increment angle over time
-
-            // Update the particle's position in a circular path around the origin (relative to black hole)
-            positions[ix] = distance * Math.cos(newAngle);
-            positions[iy] = distance * Math.sin(newAngle);
-            // Z position remains constant for a flat orbit
-        }
-        blackHoleOrbitingParticles.geometry.attributes.position.needsUpdate = true;
+        // Update shader time uniform for animation
+        blackHoleOrbitingParticles.material.uniforms.time.value = performance.now() * 0.001;
     }
 
     renderer.render(scene, camera);

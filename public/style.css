@@ -1,3 +1,74 @@
+/* Theme Variables */
+:root {
+    /* Dark Theme (Default) */
+    --color-bg-primary: #050510;
+    --color-bg-secondary: rgba(10, 11, 30, 0.7);
+    --color-bg-tertiary: rgba(30, 35, 55, 0.95);
+    --color-text-primary: #E6E6FF;
+    --color-text-secondary: #B0B0D0;
+    --color-border: rgba(108, 99, 255, 0.2);
+    --color-border-hover: rgba(108, 99, 255, 0.5);
+    --color-card-bg: rgba(10, 11, 30, 0.7);
+    --color-card-hover: rgba(15, 16, 35, 0.8);
+    --color-button-bg: rgba(108, 99, 255, 0.7);
+    --color-button-hover: var(--color-theme-secondary);
+    --color-input-bg: rgba(30, 35, 55, 0.95);
+    --color-input-border: rgba(108, 99, 255, 0.4);
+    --color-footer-bg: #0A0B1E;
+    --color-footer-border: rgba(187, 134, 252, 0.3);
+    --color-heading: #00F5FF;
+    --color-subheading: #B0B0D0;
+    --color-link: #6C63FF;
+    --color-link-hover: #00F5FF;
+    --color-nav-bg: rgba(10, 11, 30, 0.0);
+    --color-nav-scrolled: rgba(10, 11, 30, 0.8);
+    --color-nav-border: rgba(108, 99, 255, 0.0);
+    --color-nav-border-scrolled: rgba(108, 99, 255, 0.3);
+    --color-button-text: #FFFFFF;
+    --color-button-text-hover: #050510;
+    --color-shadow: rgba(108, 99, 255, 0.5);
+    --color-shadow-hover: rgba(3, 218, 198, 0.6);
+}
+
+/* Light Theme */
+.light-mode {
+    --color-bg-primary: #F8F9FA;
+    --color-bg-secondary: rgba(255, 255, 255, 0.7);
+    --color-bg-tertiary: rgba(240, 240, 245, 0.95);
+    --color-text-primary: #1A1A2E;
+    --color-text-secondary: #2D2D44;
+    --color-border: rgba(108, 99, 255, 0.1);
+    --color-border-hover: rgba(108, 99, 255, 0.3);
+    --color-card-bg: rgba(255, 255, 255, 0.7);
+    --color-card-hover: rgba(245, 245, 250, 0.8);
+    --color-button-bg: rgba(74, 69, 177, 0.8);
+    --color-button-hover: #4A45B1;
+    --color-input-bg: rgba(255, 255, 255, 0.95);
+    --color-input-border: rgba(108, 99, 255, 0.2);
+    --color-footer-bg: #FFFFFF;
+    --color-footer-border: rgba(108, 99, 255, 0.1);
+    --color-heading: #1A1A2E;
+    --color-subheading: #2D2D44;
+    --color-link: #4A45B1;
+    --color-link-hover: #2D2D44;
+    --color-nav-bg: rgba(255, 255, 255, 0.0);
+    --color-nav-scrolled: rgba(255, 255, 255, 0.8);
+    --color-nav-border: rgba(74, 69, 177, 0.0);
+    --color-nav-border-scrolled: rgba(74, 69, 177, 0.3);
+    --color-button-text: #FFFFFF;
+    --color-button-text-hover: #FFFFFF;
+    --color-shadow: rgba(74, 69, 177, 0.3);
+    --color-shadow-hover: rgba(74, 69, 177, 0.5);
+}
+
+/* Global Transitions */
+* {
+    transition: background-color 0.3s ease-in-out, 
+                color 0.3s ease-in-out, 
+                border-color 0.3s ease-in-out, 
+                box-shadow 0.3s ease-in-out;
+}
+
 * {
             font-family: 'Poppins', sans-serif;
             scroll-behavior: smooth;
@@ -5,8 +76,8 @@
         
         body {
             font-family: 'Poppins', sans-serif ;
-            background-color: #050510;
-            color: #E6E6FF;
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
             overflow-x: hidden;
             font-weight: 400;
             letter-spacing: 0.01em;
@@ -39,21 +110,21 @@
             z-index: -1;
         }
         .galaxy-card {
-            background: rgba(10, 11, 30, 0.7);
+            background: var(--color-card-bg);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(108, 99, 255, 0.2);
+            border: 1px solid var(--color-border);
             transition: all 0.3s ease;
             padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 0 15px rgba(108, 99, 255, 0.1);
+            box-shadow: 0 0 15px var(--color-shadow);
             display: flex;
             flex-direction: column;
         }
         .galaxy-card:hover {
-            border-color: rgba(108, 99, 255, 0.5);
-            box-shadow: 0 0 25px rgba(108, 99, 255, 0.4);
+            border-color: var(--color-border-hover);
+            box-shadow: 0 0 25px var(--color-shadow-hover);
             transform: translateY(-8px);
-            background-color: rgba(15, 16, 35, 0.8);
+            background-color: var(--color-card-hover);
         }
         .galaxy-card img {
             width: 100%;
@@ -122,6 +193,13 @@
             text-shadow: 0 0 8px rgba(3, 218, 198, 0.6);
         }
         .nebula-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -3;
             background: radial-gradient(circle at center, rgba(157, 78, 221, 0.2) 0%, rgba(76, 201, 240, 0.1) 50%, transparent 100%);
         }
         .star-field {
@@ -141,19 +219,19 @@
 
         /* Navigation Bar Styling */
         nav {
-            background-color: rgba(10, 11, 30, 0.0); /* Start with transparent background */
-            backdrop-filter: blur(0px); /* Start with no blur */
+            background-color: var(--color-nav-bg);
+            backdrop-filter: blur(0px);
             -webkit-backdrop-filter: blur(0px);
-            border-bottom: 1px solid rgba(108, 99, 255, 0.0); /* Start with transparent border */
-            transition: background-color 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
+            border-bottom: 1px solid var(--color-nav-border);
+            transition: all 0.3s ease;
         }
 
         /* State when scrolled */
         nav.scrolled {
-            background-color: rgba(10, 11, 30, 0.8); /* More opaque background when scrolled */
-            backdrop-filter: blur(8px); /* Add blur when scrolled */
+            background-color: var(--color-nav-scrolled);
+            backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            border-bottom: 1px solid rgba(108, 99, 255, 0.3); /* More prominent border when scrolled */
+            border-bottom: 1px solid var(--color-nav-border-scrolled);
         }
 
         nav a {
@@ -204,11 +282,11 @@
         .info-card {
              /* Inherits galaxy-card styles */
              transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-             background-color: rgba(30, 35, 55, 0.9); /* Ensure a base background */
+             background-color: var(--color-card-bg);
              padding: 24px; /* Consistent padding */
              border-radius: 12px; /* More rounded corners */
-             border: 1px solid rgba(108, 99, 255, 0.3); /* Subtle border */
-             box-shadow: 0 0 10px rgba(108, 99, 255, 0.1);
+             border: 1px solid var(--color-border);
+             box-shadow: 0 0 10px var(--color-shadow);
              display: flex;
              flex-direction: column;
              align-items: center;
@@ -217,9 +295,9 @@
 
         .info-card:hover {
              transform: translateY(-8px);
-             box-shadow: 0 0 30px rgba(108, 99, 255, 0.5);
-             background-color: rgba(40, 45, 65, 0.95);
-             border-color: rgba(108, 99, 255, 0.6);
+             box-shadow: 0 0 30px var(--color-shadow-hover);
+             background-color: var(--color-card-hover);
+             border-color: var(--color-border-hover);
         }
 
         .info-card i {
@@ -247,8 +325,8 @@
              /* Inherits bg-space-darker/50 and rounded-full */
              cursor: pointer;
              transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-             border: 1px solid rgba(108, 99, 255, 0.1);
-             box-shadow: 0 0 5px rgba(108, 99, 255, 0.1);
+             border: 1px solid var(--color-border);
+             box-shadow: 0 0 5px var(--color-shadow);
              padding: 6px 12px;
              font-size: 0.85rem;
              font-weight: 500;
@@ -259,8 +337,8 @@
         .tech-tag:hover {
             transform: translateY(-3px) scale(1.05);
              color: var(--color-space-dark) !important;
-             background-color: var(--color-theme-primary);
-             box-shadow: 0 0 15px rgba(108, 99, 255, 0.5);
+             background-color: var(--color-button-bg);
+             box-shadow: 0 0 15px var(--color-shadow-hover);
         }
 
         /* Ensure consistent spacing below headings in About Me */
@@ -292,31 +370,29 @@
 
         /* Input Focus Glowing Border */
         .form-input:focus {
-            border-color: #00F5FF; /* Secondary color border on focus */
-            box-shadow: 0 0 25px rgba(0, 245, 255, 0.5),
-                       inset 0 0 15px rgba(0, 245, 255, 0.4),
-                       0 0 40px rgba(187, 134, 252, 0.4); /* Enhanced glow effect */
-            background-color: rgba(110, 115, 130, 1); /* Slightly lighter on focus */
+            border-color: var(--color-button-bg);
+            box-shadow: 0 0 15px var(--color-shadow-hover);
+            background-color: var(--color-input-bg);
             transform: translateY(-3px); /* More pronounced lift effect */
             outline: none;
         }
 
         /* Submit Button Enhanced Styling */
         .submit-button {
-             background-color: var(--color-space-darker/50); /* Darker background */
-             border: 2px solid var(--color-theme-primary); /* Primary color border */
-             color: var(--color-theme-primary); /* Primary color text */
-             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+             background-color: var(--color-button-bg);
+             border: none;
+             color: var(--color-button-text);
+             transition: all 0.3s ease;
              position: relative;
              overflow: hidden;
              z-index: 1;
+             box-shadow: 0 0 10px var(--color-shadow);
         }
 
         .submit-button:hover {
-            background-color: var(--color-theme-primary); /* Primary color background on hover */
-            color: var(--color-space-dark); /* Dark text on hover */
-            border-color: var(--color-theme-primary); /* Primary color border on hover */
-            box-shadow: 0 0 15px rgba(187, 134, 252, 0.6), 0 0 30px rgba(187, 134, 252, 0.4); /* Add glowing effect on hover */
+            background-color: var(--color-button-hover);
+            color: var(--color-button-text-hover);
+            box-shadow: 0 0 15px var(--color-shadow-hover);
         }
 
         .submit-button::before {
@@ -341,11 +417,15 @@
              align-items: center; /* Center content vertically */
              transition: transform 0.3s ease, box-shadow 0.3s ease;
              cursor: default; /* Change cursor to default */
+             background: var(--color-card-bg);
+             border: 1px solid var(--color-border);
+             box-shadow: 0 0 10px var(--color-shadow);
         }
 
          .contact-info-item:hover {
              transform: translateY(-5px); /* Slight lift on hover */
-             box-shadow: 0 0 20px rgba(108, 99, 255, 0.3); /* Add glowing effect on hover */
+             box-shadow: 0 0 20px var(--color-shadow-hover);
+             border-color: var(--color-border-hover);
          }
 
          .contact-info-item .text-space-secondary {
@@ -364,28 +444,28 @@
 
         /* Social Link Styling */
         .social-link {
-             transition: transform 0.3s ease, color 0.3s ease;
+             color: var(--color-link);
+             transition: all 0.3s ease;
         }
 
         .social-link:hover {
+             color: var(--color-link-hover);
              transform: translateY(-5px) scale(1.1); /* Slight lift and scale on hover */
-             color: var(--color-theme-secondary); /* Secondary color on hover */
+             text-shadow: 0 0 15px var(--color-shadow-hover);
         }
 
         /* Contact Form Input Field Styling */
         .form-input {
             width: 100%;
             padding: 15px 20px;
-            border-radius: 12px;
-            background-color: rgba(100, 105, 120, 1); /* Much lighter and fully opaque background */
-            border: 2px solid #6C63FF; /* Solid primary color border */
-            color: #0A0B1E; /* Dark text for maximum contrast */
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            background-color: var(--color-input-bg);
+            border: 2px solid var(--color-input-border);
+            color: var(--color-text-primary);
+            transition: all 0.3s ease-in-out;
             font-size: 1rem;
-            box-shadow: 0 0 18px rgba(108, 99, 255, 0.4),
-                       inset 0 0 12px rgba(108, 99, 255, 0.3); /* More visible initial glow */
-            /* Removed backdrop-filter as background is opaque */
-            /* -webkit-backdrop-filter: blur(5px); */
+            box-shadow: 0 0 8px var(--color-shadow);
+            outline: none;
         }
 
         /* Placeholder text color */
@@ -404,7 +484,7 @@
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            color: #6C63FF;
+            color: var(--color-text-primary);
             font-weight: 600;
             letter-spacing: 0.05em;
             text-shadow: 0 0 10px rgba(108, 99, 255, 0.3);
@@ -454,19 +534,19 @@
             display: flex;
             align-items: center;
             space-x: 1rem; /* Tailwind space-x-4 */
-            background: rgba(30, 35, 55, 0.9); /* Darker background */
+            background: var(--color-card-bg);
             padding: 24px; /* Tailwind p-6 */
             border-radius: 12px; /* More rounded */
-            border: 1px solid rgba(108, 99, 255, 0.3); /* Subtle border */
+            border: 1px solid var(--color-border);
             transition: all 0.3s ease-in-out;
             cursor: default;
-            box-shadow: 0 0 10px rgba(108, 99, 255, 0.1);
+            box-shadow: 0 0 10px var(--color-shadow);
         }
 
         .contact-info-item:hover {
             transform: translateY(-5px); /* Slight lift */
-            box-shadow: 0 0 20px rgba(108, 99, 255, 0.3);
-            border-color: rgba(108, 99, 255, 0.5); /* Slightly more visible border on hover */
+            box-shadow: 0 0 20px var(--color-shadow-hover);
+            border-color: var(--color-border-hover);
         }
 
         .contact-info-item i {
@@ -519,19 +599,6 @@
             transition: color 0.3s ease-in-out;
         }
 
-        .form-input {
-            width: 100%;
-            padding: 15px 20px;
-            border-radius: 8px;
-            background-color: rgba(30, 35, 55, 0.95); /* Dark background */
-            border: 2px solid rgba(108, 99, 255, 0.4); /* Primary border */
-            color: var(--color-text-main); /* Light text */
-            transition: all 0.3s ease-in-out;
-            font-size: 1rem;
-            box-shadow: 0 0 8px rgba(108, 99, 255, 0.1);
-            outline: none;
-        }
-
         .form-input:focus {
             border-color: var(--color-theme-secondary); /* Secondary border on focus */
             box-shadow: 0 0 15px rgba(3, 218, 198, 0.5), inset 0 0 8px rgba(3, 218, 198, 0.3);
@@ -562,8 +629,8 @@
 
         /* Submit Button */
         .submit-button {
-            background-color: var(--color-theme-primary); /* Primary color background */
-            color: var(--color-space-dark); /* Dark text */
+            background-color: var(--color-button-bg);
+            color: var(--color-button-text);
             padding: 16px 32px; /* Tailwind py-4 px-8 */
             border-radius: 8px;
             font-weight: 600;
@@ -572,14 +639,13 @@
             transition: all 0.3s ease-in-out;
             border: none;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(187, 134, 252, 0.4);
+            box-shadow: 0 0 10px var(--color-shadow);
         }
 
         .submit-button:hover {
-            background-color: var(--color-theme-secondary); /* Secondary color on hover */
-            color: var(--color-space-dark);
-            box-shadow: 0 0 15px rgba(3, 218, 198, 0.6);
-            transform: translateY(-2px);
+            background-color: var(--color-button-hover);
+            color: var(--color-button-text-hover);
+            box-shadow: 0 0 15px var(--color-shadow-hover);
         }
 
         .submit-button:disabled {
@@ -654,20 +720,20 @@
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background-color: rgba(108, 99, 255, 0.7);
-            color: #FFFFFF;
+            background-color: var(--color-button-bg);
+            color: var(--color-button-text);
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
+            box-shadow: 0 0 10px var(--color-shadow);
             transition: all 0.3s ease-in-out;
             z-index: 1000;
         }
 
         .mode-toggle-button:hover {
-            background-color: var(--color-theme-secondary);
-            box-shadow: 0 0 15px rgba(3, 218, 198, 0.6);
+            background-color: var(--color-button-hover);
+            box-shadow: 0 0 15px var(--color-shadow-hover);
             transform: scale(1.1);
         }
 
@@ -677,11 +743,11 @@
 
         /* Footer Styling */
         footer {
-            background-color: #0A0B1E;
+            background-color: var(--color-footer-bg);
             padding: 40px 0;
-            color: #E0E0E0;
+            color: var(--color-text-primary);
             text-align: center;
-            border-top: 1px solid rgba(187, 134, 252, 0.3);
+            border-top: 1px solid var(--color-footer-border);
             display: block;
             width: 100%;
             position: relative;
@@ -707,5 +773,100 @@
 
         footer .social-links a:hover {
             color: var(--color-theme-secondary); /* Secondary color on hover */
+        }
+
+        /* Update text colors for light mode */
+        .light-mode .space-text {
+            color: #1A1A2E !important;
+            text-shadow: none;
+        }
+
+        .light-mode .text-space-light {
+            color: #2D2D44 !important;
+        }
+
+        .light-mode .text-space-secondary {
+            color: #4A45B1 !important;
+        }
+
+        .light-mode .text-space-primary {
+            color: #1A1A2E !important;
+        }
+
+        .light-mode nav a {
+            color: #2D2D44 !important;
+        }
+
+        .light-mode nav a:hover {
+            color: #4A45B1 !important;
+        }
+
+        .light-mode .galaxy-card h3 {
+            color: #1A1A2E !important;
+        }
+
+        .light-mode .galaxy-card p {
+            color: #2D2D44 !important;
+        }
+
+        .light-mode .info-card h4 {
+            color: #1A1A2E !important;
+        }
+
+        .light-mode .info-card p {
+            color: #2D2D44 !important;
+        }
+
+        .light-mode .tech-tag {
+            color: #1A1A2E !important;
+            background-color: rgba(74, 69, 177, 0.1) !important;
+        }
+
+        .light-mode .tech-tag:hover {
+            color: #FFFFFF !important;
+            background-color: #4A45B1 !important;
+        }
+
+        .light-mode .contact-info-item p {
+            color: #2D2D44 !important;
+        }
+
+        .light-mode .social-link {
+            color: #4A45B1 !important;
+        }
+
+        .light-mode .social-link:hover {
+            color: #1A1A2E !important;
+        }
+
+        .light-mode .form-group label {
+            color: #1A1A2E !important;
+        }
+
+        .light-mode .form-input {
+            color: #1A1A2E !important;
+        }
+
+        .light-mode .form-input::placeholder {
+            color: rgba(26, 26, 46, 0.6) !important;
+        }
+
+        .light-mode footer {
+            color: #1A1A2E !important;
+        }
+
+        .light-mode footer p {
+            color: #1A1A2E !important;
+        }
+
+        .light-mode .mode-toggle-button {
+            color: #1A1A2E !important;
+        }
+
+        /* Section Background Updates */
+
+        /* Nebula Gradient Update for Light Mode */
+        .light-mode .nebula-gradient {
+            background: radial-gradient(circle at center, rgba(157, 78, 221, 0.2) 0%, rgba(76, 201, 240, 0.1) 50%, transparent 100%);
         }
     
