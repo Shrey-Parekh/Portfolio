@@ -1,0 +1,711 @@
+* {
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif ;
+            background-color: #050510;
+            color: #E6E6FF;
+            overflow-x: hidden;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif ;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .text-5xl, .text-7xl {
+            font-family: 'Poppins', sans-serif ;
+            font-weight: 700 !important;
+        }
+
+        .space-text {
+            font-family: 'Delius', cursive !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.03em;
+            color: #00F5FF !important;
+            letter-spacing: 2px;
+        }
+        #space-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .galaxy-card {
+            background: rgba(10, 11, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            transition: all 0.3s ease;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(108, 99, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .galaxy-card:hover {
+            border-color: rgba(108, 99, 255, 0.5);
+            box-shadow: 0 0 25px rgba(108, 99, 255, 0.4);
+            transform: translateY(-8px);
+            background-color: rgba(15, 16, 35, 0.8);
+        }
+        .galaxy-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .galaxy-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--color-theme-primary);
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+        .galaxy-card p {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            color: var(--color-text-main);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .galaxy-card .flex.flex-wrap.gap-2.mb-4 {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid rgba(108, 99, 255, 0.1);
+        }
+        .tech-skill {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: rgba(3, 218, 198, 0.2);
+            color: var(--color-theme-secondary);
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+            cursor: default;
+        }
+        .tech-skill:hover {
+            background-color: var(--color-theme-secondary);
+            color: var(--color-space-dark);
+            transform: translateY(-2px);
+        }
+        .galaxy-card .flex.justify-between {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(108, 99, 255, 0.1);
+        }
+        .galaxy-card a {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-theme-primary);
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+            text-decoration: none;
+        }
+        .galaxy-card a:hover {
+            color: var(--color-theme-secondary);
+            text-shadow: 0 0 8px rgba(3, 218, 198, 0.6);
+        }
+        .nebula-gradient {
+            background: radial-gradient(circle at center, rgba(157, 78, 221, 0.2) 0%, rgba(76, 201, 240, 0.1) 50%, transparent 100%);
+        }
+        .star-field {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+        }
+        @keyframes spaceShine {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Navigation Bar Styling */
+        nav {
+            background-color: rgba(10, 11, 30, 0.0); /* Start with transparent background */
+            backdrop-filter: blur(0px); /* Start with no blur */
+            -webkit-backdrop-filter: blur(0px);
+            border-bottom: 1px solid rgba(108, 99, 255, 0.0); /* Start with transparent border */
+            transition: background-color 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
+        }
+
+        /* State when scrolled */
+        nav.scrolled {
+            background-color: rgba(10, 11, 30, 0.8); /* More opaque background when scrolled */
+            backdrop-filter: blur(8px); /* Add blur when scrolled */
+            -webkit-backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(108, 99, 255, 0.3); /* More prominent border when scrolled */
+        }
+
+        nav a {
+            position: relative; /* Needed for pseudo-elements */
+            color: #B0B0D0; /* Slightly lighter grey for links */
+            transition: color 0.3s ease;
+            font-weight: 500; /* Make links a bit bolder */
+            opacity: 0; /* Initial state for entrance animation */
+            transform: translateY(-10px); /* Initial state for entrance animation */
+        }
+
+        nav a:hover {
+            color: var(--color-theme-primary); /* Primary theme color on hover */
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, var(--color-theme-secondary), var(--color-theme-primary));
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s ease-out;
+        }
+
+        nav a:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        /* Add a subtle glow to the logo */
+        nav .space-text {
+            color: #00F5FF !important;
+            text-shadow: none;
+            opacity: 1;
+            transform: none;
+        }
+
+        nav .space-text:hover {
+            color: #00F5FF !important;
+            text-shadow: none;
+        }
+
+        /* Info Card Styling */
+        .info-card {
+             /* Inherits galaxy-card styles */
+             transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+             background-color: rgba(30, 35, 55, 0.9); /* Ensure a base background */
+             padding: 24px; /* Consistent padding */
+             border-radius: 12px; /* More rounded corners */
+             border: 1px solid rgba(108, 99, 255, 0.3); /* Subtle border */
+             box-shadow: 0 0 10px rgba(108, 99, 255, 0.1);
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             text-align: center;
+        }
+
+        .info-card:hover {
+             transform: translateY(-8px);
+             box-shadow: 0 0 30px rgba(108, 99, 255, 0.5);
+             background-color: rgba(40, 45, 65, 0.95);
+             border-color: rgba(108, 99, 255, 0.6);
+        }
+
+        .info-card i {
+             color: var(--color-theme-secondary);
+             font-size: 2.5rem;
+             margin-bottom: 1rem;
+             transition: color 0.3s ease;
+        }
+
+        .info-card h4 {
+            color: var(--color-theme-primary);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .info-card p {
+             color: var(--color-text-main);
+             font-size: 0.95rem;
+        }
+
+       
+        /* Technology Tag Styling */
+        .tech-tag {
+             /* Inherits bg-space-darker/50 and rounded-full */
+             cursor: pointer;
+             transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+             border: 1px solid rgba(108, 99, 255, 0.1);
+             box-shadow: 0 0 5px rgba(108, 99, 255, 0.1);
+             padding: 6px 12px;
+             font-size: 0.85rem;
+             font-weight: 500;
+             text-transform: uppercase;
+             letter-spacing: 0.05em;
+        }
+
+        .tech-tag:hover {
+            transform: translateY(-3px) scale(1.05);
+             color: var(--color-space-dark) !important;
+             background-color: var(--color-theme-primary);
+             box-shadow: 0 0 15px rgba(108, 99, 255, 0.5);
+        }
+
+        /* Ensure consistent spacing below headings in About Me */
+        #about h3 {
+            margin-bottom: 1.5rem;
+        }
+
+
+        /* Contact Form Advanced Styling and Animations */
+
+        /* Keyframes for subtle pulsing glow */
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes pulse-slow {
+             0%, 100% { opacity: 0.2; }
+             50% { opacity: 0.4; }
+        }
+
+        .animate-pulse {
+             animation: pulse 2s infinite ease-in-out;
+        }
+
+        .animate-pulse-slow {
+             animation: pulse-slow 3s infinite ease-in-out;
+        }
+
+        /* Input Focus Glowing Border */
+        .form-input:focus {
+            border-color: #00F5FF; /* Secondary color border on focus */
+            box-shadow: 0 0 25px rgba(0, 245, 255, 0.5),
+                       inset 0 0 15px rgba(0, 245, 255, 0.4),
+                       0 0 40px rgba(187, 134, 252, 0.4); /* Enhanced glow effect */
+            background-color: rgba(110, 115, 130, 1); /* Slightly lighter on focus */
+            transform: translateY(-3px); /* More pronounced lift effect */
+            outline: none;
+        }
+
+        /* Submit Button Enhanced Styling */
+        .submit-button {
+             background-color: var(--color-space-darker/50); /* Darker background */
+             border: 2px solid var(--color-theme-primary); /* Primary color border */
+             color: var(--color-theme-primary); /* Primary color text */
+             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+             position: relative;
+             overflow: hidden;
+             z-index: 1;
+        }
+
+        .submit-button:hover {
+            background-color: var(--color-theme-primary); /* Primary color background on hover */
+            color: var(--color-space-dark); /* Dark text on hover */
+            border-color: var(--color-theme-primary); /* Primary color border on hover */
+            box-shadow: 0 0 15px rgba(187, 134, 252, 0.6), 0 0 30px rgba(187, 134, 252, 0.4); /* Add glowing effect on hover */
+        }
+
+        .submit-button::before {
+             content: '';
+             position: absolute;
+             top: 0;
+             left: -100%;
+             width: 100%;
+             height: 100%;
+             background: linear-gradient(120deg, transparent, rgba(187, 134, 252, 0.3), transparent); /* Shine effect */
+             transition: left 0.8s ease;
+             z-index: -1;
+        }
+
+        .submit-button:hover::before {
+             left: 100%;
+        }
+
+        /* Contact Info Item Styling */
+        .contact-info-item {
+             /* Inherits galaxy-card styles */
+             align-items: center; /* Center content vertically */
+             transition: transform 0.3s ease, box-shadow 0.3s ease;
+             cursor: default; /* Change cursor to default */
+        }
+
+         .contact-info-item:hover {
+             transform: translateY(-5px); /* Slight lift on hover */
+             box-shadow: 0 0 20px rgba(108, 99, 255, 0.3); /* Add glowing effect on hover */
+         }
+
+         .contact-info-item .text-space-secondary {
+             flex-shrink: 0; /* Prevent icon from shrinking */
+         }
+
+        .contact-info-item h4 {
+             color: var(--color-theme-primary); /* Primary color for titles */
+             margin-bottom: 0.25rem; /* Small margin below title */
+        }
+
+        .contact-info-item p {
+            color: var(--color-text-main); /* Use main text color for details */
+             font-size: 0.9rem; /* Slightly smaller font size */
+        }
+
+        /* Social Link Styling */
+        .social-link {
+             transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .social-link:hover {
+             transform: translateY(-5px) scale(1.1); /* Slight lift and scale on hover */
+             color: var(--color-theme-secondary); /* Secondary color on hover */
+        }
+
+        /* Contact Form Input Field Styling */
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 12px;
+            background-color: rgba(100, 105, 120, 1); /* Much lighter and fully opaque background */
+            border: 2px solid #6C63FF; /* Solid primary color border */
+            color: #0A0B1E; /* Dark text for maximum contrast */
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+            box-shadow: 0 0 18px rgba(108, 99, 255, 0.4),
+                       inset 0 0 12px rgba(108, 99, 255, 0.3); /* More visible initial glow */
+            /* Removed backdrop-filter as background is opaque */
+            /* -webkit-backdrop-filter: blur(5px); */
+        }
+
+        /* Placeholder text color */
+        .form-input::placeholder {
+            color: rgba(10, 11, 30, 0.7); /* Dark placeholder against light background */
+            font-style: italic;
+        }
+
+        /* Form group styling */
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Label styling */
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #6C63FF;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 10px rgba(108, 99, 255, 0.3);
+        }
+
+        /* Error message styling */
+        .error-message {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            color: #FF3366;
+            font-size: 0.875rem;
+            text-shadow: 0 0 10px rgba(255, 51, 102, 0.3);
+        }
+
+        /* Add new CSS styles for the enhanced contact section here */
+
+        /* Enhanced Contact Section Styling */
+        #contact {
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #contact h2 {
+             /* Inherits space-text style */
+        }
+
+         #contact .container {
+             position: relative;
+             z-index: 10;
+         }
+
+        #contact .grid {
+            align-items: start; /* Align items to the top */
+        }
+
+        /* Left Column (Contact Info & Socials) */
+        #contact .space-y-8 > h3,
+        #contact .space-y-6 > h3 {
+            color: var(--color-theme-primary);
+            font-weight: 600;
+        }
+
+        /* Contact Info Items */
+        .contact-info-item {
+            display: flex;
+            align-items: center;
+            space-x: 1rem; /* Tailwind space-x-4 */
+            background: rgba(30, 35, 55, 0.9); /* Darker background */
+            padding: 24px; /* Tailwind p-6 */
+            border-radius: 12px; /* More rounded */
+            border: 1px solid rgba(108, 99, 255, 0.3); /* Subtle border */
+            transition: all 0.3s ease-in-out;
+            cursor: default;
+            box-shadow: 0 0 10px rgba(108, 99, 255, 0.1);
+        }
+
+        .contact-info-item:hover {
+            transform: translateY(-5px); /* Slight lift */
+            box-shadow: 0 0 20px rgba(108, 99, 255, 0.3);
+            border-color: rgba(108, 99, 255, 0.5); /* Slightly more visible border on hover */
+        }
+
+        .contact-info-item i {
+            color: var(--color-theme-secondary);
+            font-size: 2rem; /* Tailwind text-4xl */
+            flex-shrink: 0;
+        }
+
+        .contact-info-item h4 {
+            color: var(--color-theme-primary);
+            font-weight: 600;
+            margin-bottom: 0.25rem; /* Tailwind mb-1 */
+        }
+
+        .contact-info-item p {
+            color: var(--color-text-main);
+            font-size: 0.95rem; /* Slightly larger text */
+        }
+
+        /* Social Links */
+        #contact .social-link {
+            color: var(--color-theme-primary);
+            font-size: 2.5rem;
+            transition: all 0.3s ease-in-out;
+             text-shadow: 0 0 8px rgba(187, 134, 252, 0); /* Initial subtle shadow */
+        }
+
+        #contact .social-link:hover {
+            color: var(--color-theme-secondary);
+            transform: translateY(-5px) scale(1.1);
+             text-shadow: 0 0 15px rgba(3, 218, 198, 0.6), 0 0 25px rgba(3, 218, 198, 0.4); /* Glowing effect on hover */
+        }
+
+        /* Right Column (Contact Form) */
+        #contact form {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem; /* Ensure consistent spacing */
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-theme-primary);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background-color: rgba(30, 35, 55, 0.95); /* Dark background */
+            border: 2px solid rgba(108, 99, 255, 0.4); /* Primary border */
+            color: var(--color-text-main); /* Light text */
+            transition: all 0.3s ease-in-out;
+            font-size: 1rem;
+            box-shadow: 0 0 8px rgba(108, 99, 255, 0.1);
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--color-theme-secondary); /* Secondary border on focus */
+            box-shadow: 0 0 15px rgba(3, 218, 198, 0.5), inset 0 0 8px rgba(3, 218, 198, 0.3);
+            background-color: rgba(35, 40, 60, 0.98);
+        }
+
+        .form-input::placeholder {
+            color: rgba(224, 224, 224, 0.6);
+        }
+
+        /* Real-time Validation */
+        .form-group.invalid input,
+        .form-group.invalid textarea {
+            border-color: #FF3366; /* Red border for invalid fields */
+            box-shadow: 0 0 10px rgba(255, 51, 102, 0.4);
+        }
+
+        .error-message {
+            color: #FF3366;
+            font-size: 0.875rem; /* Tailwind text-sm */
+            margin-top: 0.5rem; /* Tailwind mt-1 */
+            display: none; /* Hidden by default, shown by JS */
+        }
+
+        .form-group.invalid .error-message {
+            display: block;
+        }
+
+        /* Submit Button */
+        .submit-button {
+            background-color: var(--color-theme-primary); /* Primary color background */
+            color: var(--color-space-dark); /* Dark text */
+            padding: 16px 32px; /* Tailwind py-4 px-8 */
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease-in-out;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(187, 134, 252, 0.4);
+        }
+
+        .submit-button:hover {
+            background-color: var(--color-theme-secondary); /* Secondary color on hover */
+            color: var(--color-space-dark);
+            box-shadow: 0 0 15px rgba(3, 218, 198, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .submit-button:disabled {
+            background-color: rgba(187, 134, 252, 0.5);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #form-status {
+            margin-top: 1rem; /* Tailwind mt-4 */
+            text-align: center;
+            font-size: 0.875rem; /* Tailwind text-sm */
+            font-weight: 500;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            #contact .grid {
+                grid-template-columns: 1fr; /* Stack columns on mobile */
+                gap: 40px; /* Tailwind gap-10 */
+            }
+
+            #contact .space-y-8,
+            #contact .space-y-6 {
+                 space-y: 1.5rem; /* Tailwind space-y-6 */
+            }
+
+            .contact-info-item {
+                padding: 16px; /* Tailwind p-4 */
+            }
+
+            .contact-info-item i {
+                font-size: 1.8rem; /* Slightly smaller icon */
+            }
+
+            .contact-info-item h4 {
+                font-size: 1rem; /* Slightly smaller title */
+            }
+
+            .contact-info-item p {
+                font-size: 0.9rem;
+            }
+
+            #contact form {
+                 space-y: 1rem; /* Tailwind space-y-4 */
+            }
+
+            .form-group {
+                margin-bottom: 1rem;
+            }
+
+            .form-group label {
+                font-size: 0.875rem; /* Tailwind text-sm */
+            }
+
+            .form-input {
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+
+            .submit-button {
+                padding: 12px 24px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Mode Toggle Button Styling */
+        .mode-toggle-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgba(108, 99, 255, 0.7);
+            color: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
+            transition: all 0.3s ease-in-out;
+            z-index: 1000;
+        }
+
+        .mode-toggle-button:hover {
+            background-color: var(--color-theme-secondary);
+            box-shadow: 0 0 15px rgba(3, 218, 198, 0.6);
+            transform: scale(1.1);
+        }
+
+        .mode-toggle-button i {
+            font-size: 1.5rem;
+        }
+
+        /* Footer Styling */
+        footer {
+            background-color: #0A0B1E;
+            padding: 40px 0;
+            color: #E0E0E0;
+            text-align: center;
+            border-top: 1px solid rgba(187, 134, 252, 0.3);
+            display: block;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        footer p {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Optional: Social links styling within footer */
+        footer .social-links {
+            margin-top: 20px;
+        }
+
+        footer .social-links a {
+            color: #E0E0E0; /* Light color for icons */
+            font-size: 1.5rem;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        footer .social-links a:hover {
+            color: var(--color-theme-secondary); /* Secondary color on hover */
+        }
+    

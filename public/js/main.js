@@ -18,6 +18,7 @@ let hintTimeout;
 let zoomLevel = 1;
 let maxZoom = 3;
 let minZoom = 0.5;
+let projectsLoaded = false;
 
 // Debug logging
 console.log('Script starting...');
@@ -303,7 +304,7 @@ function initEntranceAnimations() {
                         setTimeout(typeWriter, 70); // Typing speed (adjust as needed)
                     } else {
                          // Add continuous glow pulse animation after typing is complete
-                         mainTitle.style.animation = 'textGlowPulse 2.5s infinite alternate';
+                         // mainTitle.style.animation = 'textGlowPulse 2.5s infinite alternate'; // Removed this line
                     }
                 };
                 typeWriter();
@@ -590,6 +591,7 @@ function createBlackHole() {
             color1: { value: new THREE.Color(0xffe066) }, // yellow
             color2: { value: new THREE.Color(0xff3366) }, // magenta
             color3: { value: new THREE.Color(0x6C63FF) }, // blue
+            time: { value: 0.0 }
         },
         vertexShader: `
             varying vec2 vUv;
@@ -602,12 +604,53 @@ function createBlackHole() {
             uniform vec3 color1;
             uniform vec3 color2;
             uniform vec3 color3;
+            uniform float time;
             varying vec2 vUv;
+
             void main() {
-                float t = vUv.x;
-                vec3 color = mix(color1, color2, t);
-                color = mix(color, color3, smoothstep(0.7, 1.0, t));
-                gl_FragColor = vec4(color, 0.9 * (1.0 - vUv.y)); // Increased opacity for a more vibrant disk
+                // Radial gradient based on distance from center (vUv.x)
+                float distance = length(vUv - 0.5);
+                // Define gradient zones based on distance
+                float innerEdge = 0.1; // Closer to center
+                float midZone = 0.4;
+                float outerEdge = 0.5; // Furthest from center
+
+                vec3 color;
+                if (distance < midZone) {
+                    // Inner part: Transition from color1 (yellow/white) to color2 (magenta)
+                    float innerGradient = smoothstep(innerEdge, midZone, distance);
+                    color = mix(color1, color2, innerGradient);
+                } else {
+                    // Outer part: Transition from color2 (magenta) to color3 (blue)
+                    float outerGradient = smoothstep(midZone, outerEdge, distance);
+                    color = mix(color2, color3, outerGradient);
+                }
+
+                // Enhance the spiral pattern effect
+                float angle = atan(vUv.y - 0.5, vUv.x - 0.5);
+                float spiralFactor = 8.0; // Further increased spiral factor
+                float spiralSpeed = 0.1; // Faster spiral rotation
+                float spiral = mod(angle / (2.0 * PI) + time * spiralSpeed + distance * spiralFactor, 1.0);
+
+                // Blend spiral pattern into the color
+                // Create a pulsing effect on the spiral based on time
+                float pulse = sin(time * 5.0 + distance * 20.0) * 0.1 + 0.9; // Faster pulse closer in
+                vec3 spiralColor = mix(color1, color3, spiral) * pulse; // Color mix for spiral, add pulse
+                color = mix(color, spiralColor, smoothstep(0.2, 0.8, spiral)); // Blend spiral more strongly
+
+                // Add more detailed noise for turbulence
+                float noise = fract(sin(dot(vUv.xy * 20.0 + time*5.0, vec2(12.9898,78.233))) * 43758.5453);
+                noise = noise * 2.0 - 1.0; // Map noise to -1 to 1
+
+                // Refine opacity based on distance and noise
+                // Strong falloff near the inner edge, fade towards the outer edge
+                float opacity = 0.8 * smoothstep(innerEdge + 0.05, midZone - 0.05, distance) * smoothstep(outerEdge, midZone + 0.05, distance);
+                opacity += noise * 0.1 * opacity; // Add noise influence to opacity
+
+                // Ensure opacity is not too low and has a base level
+                opacity = max(0.2, opacity); // Minimum opacity level
+
+                gl_FragColor = vec4(color, opacity);
             }
         `,
         transparent: true,
@@ -623,7 +666,7 @@ function createBlackHole() {
     const atmosphereMaterial = new THREE.MeshBasicMaterial({
         color: 0x00aaff,
         transparent: true,
-        opacity: 0.2, // Increased opacity for a more visible halo
+        opacity: 0.3, // Increased opacity slightly for a more visible halo
         side: THREE.BackSide,
         blending: THREE.AdditiveBlending
     });
@@ -635,7 +678,7 @@ function createBlackHole() {
     const lensMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
-        opacity: 0.1, // Increased opacity for a more visible lensing effect
+        opacity: 0.15, // Increased opacity slightly
         side: THREE.DoubleSide,
         blending: THREE.AdditiveBlending
     });
@@ -643,28 +686,41 @@ function createBlackHole() {
     lens.rotation.x = Math.PI / 2;
     blackHole.add(lens);
 
-    // Add particle effects around black hole (for realism)
-    const particleGeometry = new THREE.BufferGeometry();
-    const particleMaterial = new THREE.PointsMaterial({
-        color: 0x6C63FF,
-        size: 0.2,
+    // Add a small layer of orbiting particles
+    const orbitingParticleGeometry = new THREE.BufferGeometry();
+    const orbitingParticleMaterial = new THREE.PointsMaterial({
+        color: 0xFFFFFF, // White or a subtle color
+        size: 0.1,
         transparent: true,
-        opacity: 0.4,
+        opacity: 0.7,
         blending: THREE.AdditiveBlending
     });
-    const particleVertices = [];
-    for (let i = 0; i < 1000; i++) {
-        const radius = 7 + Math.random() * 7;
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
-        const x = radius * Math.sin(phi) * Math.cos(theta);
-        const y = radius * Math.sin(phi) * Math.sin(theta);
-        const z = radius * Math.cos(phi);
-        particleVertices.push(x, y, z);
+    const orbitingParticleVertices = [];
+
+    const numOrbitingParticles = 500; // Reduced number for a 'small' layer
+    const orbitingRadius = 15; // Orbiting distance
+
+    for (let i = 0; i < numOrbitingParticles; i++) {
+        // Distribute particles in a flat ring shape
+        const angle = Math.random() * Math.PI * 2;
+        const r = orbitingRadius + (Math.random() - 0.5) * 2; // Slight variation in radius
+
+        const x = r * Math.cos(angle);
+        const y = r * Math.sin(angle);
+        const z = (Math.random() - 0.5) * 0.5; // Small vertical spread
+
+        orbitingParticleVertices.push(x, y, z);
     }
-    particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particleVertices, 3));
-    const particles = new THREE.Points(particleGeometry, particleMaterial);
-    blackHole.add(particles);
+
+    orbitingParticleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitingParticleVertices, 3));
+    const orbitingParticles = new THREE.Points(orbitingParticleGeometry, orbitingParticleMaterial);
+    blackHole.add(orbitingParticles);
+    // Store for animation
+    blackHoleOrbitingParticles = orbitingParticles; // Make sure this variable is declared globally or in a scope accessible by animate()
+
+    // Note: Particle movement logic will need to be added in the animate() function.
+    // We need to update the position attribute of the particle geometries in the animation loop.
+
 }
 
 function setupEventListeners() {
@@ -897,54 +953,62 @@ function setupEventListeners() {
 function animate() {
     requestAnimationFrame(animate);
 
-    try {
-        // Rotate black hole
-        if (blackHole) {
-            blackHole.rotation.y += 0.002;
+    if (controls) controls.update();
+
+    // Rotate the black hole with dynamic, gradual spinning
+    if (blackHole) {
+        // Create smooth, continuous rotation on multiple axes
+        const time = performance.now() * 0.0005; // Slower rotation speed
+        
+        // Primary rotation (around Z axis)
+        blackHole.rotation.z = Math.sin(time) * 0.2; // Oscillating rotation
+        
+        // Secondary rotation (around X axis)
+        blackHole.rotation.x = Math.cos(time * 0.7) * 0.15; // Different frequency
+        
+        // Tertiary rotation (around Y axis)
+        blackHole.rotation.y = Math.sin(time * 0.3) * 0.1; // Even slower rotation
+
+        // Update accretion disk shader time uniform for animation
+        if (blackHole.children) {
             blackHole.children.forEach(child => {
-                // Rotate children relative to the black hole
-                 if (child.name !== 'particles') { // Exclude particles from this rotation
-                    child.rotation.z += 0.001;
-                 }
-            });
-             // Animate particles separately if needed
-             const particles = blackHole.getObjectByName('particles');
-             if (particles && particles.geometry.attributes.position) {
-                 const positions = particles.geometry.attributes.position.array;
-                 // Example: simple radial movement outwards
-                 for (let i = 0; i < positions.length; i += 3) {
-                     const x = positions[i];
-                     const y = positions[i + 1];
-                     const z = positions[i + 2];
-                     const speed = 0.0005;
-                     positions[i] += x * speed;
-                     positions[i + 1] += y * speed;
-                     positions[i + 2] += z * speed;
-                 }
-                 particles.geometry.attributes.position.needsUpdate = true;
-             }
-        }
-
-        // Twinkle stars
-        stars.forEach(starField => {
-            if (starField && starField.geometry && starField.geometry.attributes) {
-                const sizes = starField.geometry.attributes.size.array;
-                for (let i = 0; i < sizes.length; i++) {
-                    // Adjusted twinkle effect
-                     sizes[i] = Math.abs(Math.sin(Date.now() * 0.001 + i)) * 1.0 + 0.5; // Brighter and more noticeable twinkle
+                if (child.material && child.material.uniforms && child.material.uniforms.time) {
+                    child.material.uniforms.time.value += 0.005; // Increment time for animation
                 }
-                starField.geometry.attributes.size.needsUpdate = true;
-            }
-        });
-
-        // Update controls
-        if (controls) controls.update();
-
-        // Render scene
-        renderer.render(scene, camera);
-    } catch (error) {
-        console.error('Error in animation loop:', error);
+            });
+        }
     }
+
+    // Animate the small layer of orbiting particles
+    if (blackHoleOrbitingParticles) {
+        const positions = blackHoleOrbitingParticles.geometry.attributes.position.array;
+        const time = performance.now() * 0.0003; // Slower orbiting speed
+
+        for (let i = 0; i < positions.length; i += 3) {
+            const ix = i;
+            const iy = i + 1;
+            const iz = i + 2;
+
+            // Get the original position of the particle
+            const originalX = positions[ix]; // Need to store original positions if not already
+            const originalY = positions[iy];
+            const originalZ = positions[iz];
+
+            // Calculate the current angle based on the original position and time
+            const initialAngle = Math.atan2(originalY, originalX);
+            const distance = Math.sqrt(originalX * originalX + originalY * originalY);
+            const orbitSpeed = 0.5; // Base speed of orbit
+            const newAngle = initialAngle + time * orbitSpeed; // Increment angle over time
+
+            // Update the particle's position in a circular path around the origin (relative to black hole)
+            positions[ix] = distance * Math.cos(newAngle);
+            positions[iy] = distance * Math.sin(newAngle);
+            // Z position remains constant for a flat orbit
+        }
+        blackHoleOrbitingParticles.geometry.attributes.position.needsUpdate = true;
+    }
+
+    renderer.render(scene, camera);
 }
 
 // Handle window resize
@@ -1080,6 +1144,14 @@ function initGSAPAnimations() {
 
 // Load and animate project cards
 async function loadProjects() {
+    // Prevent duplicate loading
+    if (projectsLoaded) {
+        console.log('Projects already loaded, skipping...');
+        return;
+    }
+
+    projectsLoaded = true;
+
     try {
         const response = await fetch('/api/projects');
         // Check if the response is OK and if it's JSON
@@ -1105,6 +1177,17 @@ async function loadProjects() {
         }
 
         const projects = await response.json();
+
+        // Filter out duplicate projects based on title
+        const uniqueProjects = [];
+        const projectTitles = new Set();
+
+        projects.forEach(project => {
+            if (!projectTitles.has(project.title)) {
+                projectTitles.add(project.title);
+                uniqueProjects.push(project);
+            }
+        });
         
         const projectsGrid = document.getElementById('projects-grid');
         if (!projectsGrid) {
@@ -1115,7 +1198,7 @@ async function loadProjects() {
         // Clear existing content before loading
         projectsGrid.innerHTML = '';
 
-        projects.forEach((project, index) => {
+        uniqueProjects.forEach((project, index) => {
             const card = document.createElement('div');
             card.className = 'galaxy-card p-6 rounded-lg';
             card.innerHTML = `
@@ -1152,7 +1235,7 @@ async function loadProjects() {
                 }
             });
         });
-         console.log(`Loaded ${projects.length} projects.`);
+         console.log(`Loaded ${uniqueProjects.length} unique projects.`);
 
     } catch (error) {
         console.error('Error loading projects:', error);
@@ -1257,7 +1340,18 @@ function setupContactForm() {
 
         // Animate contact info items
         if (contactInfoItems.length > 0) {
-             gsap.to(contactInfoItems, { opacity: 1, x: 0, duration: 1, ease: 'power2.out', stagger: 0.2, scrollTrigger: { trigger: contactInfoItems[0], start: 'top 75%' } });
+             gsap.to(contactInfoItems, { 
+                 opacity: 1, 
+                 y: 0, // Change from x: 0 to y: 0 for upward movement
+                 duration: 1,
+                 ease: 'power2.out',
+                 stagger: 0.2, 
+                 scrollTrigger: { 
+                     trigger: contactInfoItems[0],
+                     start: 'top 80%', // Adjust trigger start slightly if needed
+                     toggleActions: 'play none none none'
+                 } 
+             });
         }
 
         // Animate social links
